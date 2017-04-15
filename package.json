@@ -1,0 +1,28 @@
+{
+  "name": "stock_bot",
+  "version": "1.0.0",
+  "description": "Stock price guesser",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rttomlinson/stock_bot.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rttomlinson/stock_bot/issues"
+  },
+  "homepage": "https://github.com/rttomlinson/stock_bot#readme",
+  "dependencies": {
+    "body-parser": "^1.17.1",
+    "express": "^4.15.2",
+    "fetch": "^1.1.0",
+    "jasmine": "^2.5.3",
+    "jasmine-node": "^1.14.5",
+    "request": "^2.81.0",
+    "twit": "^2.2.5"
+  }
+}
