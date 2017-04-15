@@ -40,15 +40,13 @@ describe("prediction Maker", function() {
       let predictionObj = predictionMaker("Take 2 Interactive");
       expect(typeof predictionObj.time).toBe("string");
     });
-
   });
 
-  describe("a call to callAlgorithim", function() {
-    it("check if method returns up or down", function() {
+  describe("callAlgorithim function", function() {
+    it("returns up or down", function() {
       expect(/^up$|^down$/.test(callAlgorithim())).toEqual(true);
     });
   });
-
 });
 
 // xdescribe("prediction formatter", function() {
