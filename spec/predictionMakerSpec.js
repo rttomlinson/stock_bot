@@ -15,6 +15,11 @@ describe("prediction Maker", function() {
       expect(predictionMaker('Apple')).toEqual(prediction)
     });
 
+
+
+
+
+
   });
   describe("a call to callAlgorithim", function() {
     it("check if method returns up or down", function() {
