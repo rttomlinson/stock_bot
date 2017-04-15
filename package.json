@@ -4,7 +4,7 @@
   "description": "Stock price guesser",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jasmine-node ./spec --autotest --color --watch ."
   },
   "repository": {
     "type": "git",
@@ -25,4 +25,5 @@
     "request": "^2.81.0",
     "twit": "^2.2.5"
   }
+
 }
