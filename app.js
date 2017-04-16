@@ -3,7 +3,12 @@ const express = require("express");
 //const fetch = require("isomorphic-fetch");
 
 const TwitterWrapper = require("./lib/twitter_wrapper");
-const twit = new TwitterWrapper(require("./configtwit.json"));
+const twit = new TwitterWrapper({
+  consumer_key: process.env.TWITTER_CONSUMER_KEY,
+  consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
+  access_token: process.env.TWITTER_ACCESS_TOKEN,
+  access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET
+});
 
 ////************* Prediction Maker Module ********////
 const PredictionMaker = require("./lib/predictionMaker");
@@ -25,7 +30,8 @@ async function tweetPrediction() {
   });
 }
 
-setInterval(tweetPrediction, 86400000);
+tweetPrediction();
+// setInterval(tweetPrediction, 86400000);
 
 //WRITE A TEST LATER DONT BE LAZY - FOR MARK
 //////////*******Runs multiple tweets locally*********//////////////////////
