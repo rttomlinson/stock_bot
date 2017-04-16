@@ -31,8 +31,10 @@ async function tweetPrediction() {
     });
 }
 
-tweetPrediction();
-// setInterval(tweetPrediction, 86400000);
+setTimeout(function() {
+    setInterval(tweetPrediction, 86400000);
+}, 43200000);
+
 
 //WRITE A TEST LATER DONT BE LAZY - FOR MARK
 //////////*******Runs multiple tweets locally*********//////////////////////
