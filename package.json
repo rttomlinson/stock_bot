@@ -4,6 +4,7 @@
   "description": "Stock price guesser",
   "main": "app.js",
   "scripts": {
+    "start": "node app.js",
     "test": "./node_modules/jasmine-node/bin/jasmine-node ./spec --autotest --color --watch ."
   },
   "repository": {
@@ -24,6 +25,9 @@
     "jasmine-node": "^1.14.5",
     "request": "^2.81.0",
     "twit": "^2.2.5"
+  },
+  "engines": {
+    "node": "7.8.0"
   }
 
 }

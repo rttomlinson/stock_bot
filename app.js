@@ -4,10 +4,10 @@ const express = require("express");
 
 const TwitterWrapper = require("./lib/twitter_wrapper");
 const twit = new TwitterWrapper({
-  consumer_key: process.env.TWITTER_CONSUMER_KEY,
-  consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
-  access_token: process.env.TWITTER_ACCESS_TOKEN,
-  access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET
+    consumer_key: process.env.TWITTER_CONSUMER_KEY,
+    consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
+    access_token: process.env.TWITTER_ACCESS_TOKEN,
+    access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET
 });
 
 ////************* Prediction Maker Module ********////
@@ -19,15 +19,16 @@ const predictionFormatter = require("./lib/predictionFormatter");
 
 //get a prediction
 async function tweetPrediction() {
-  let predictionObj = await predictionMaker.getPrediction("Apple");
-  let predictionString = predictionFormatter(predictionObj);
-  twit.sendPrediction(predictionString).then(response => {
-    if (typeof response === "string") {
-      console.error(response);
-    } else {
-      console.log(`Response from twitter API ${response.data}`);
-    }
-  });
+    let predictionObj = await predictionMaker.getPrediction("Apple");
+    let predictionString = predictionFormatter(predictionObj);
+    twit.sendPrediction(predictionString).then(response => {
+        if (typeof response === "string") {
+            console.error(response);
+        }
+        else {
+            console.log(`Response from twitter API ${response.data}`);
+        }
+    });
 }
 
 tweetPrediction();
