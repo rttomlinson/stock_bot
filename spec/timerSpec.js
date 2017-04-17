@@ -3,18 +3,25 @@ const delayTimer = new DelayTimer();
 describe("time to delay calculation", function() {
     describe("can accept a time in the future and tell the user how long until that time", function() {
 
-        it("empty arguments returns 0", function() {
+        xit("empty arguments returns 0", function() {
 
             expect(delayTimer.timeUntilInvocation( /*Future date*/ )).toBe(0);
         });
-        it("accepts a datestring 000000 and returns", function() {
+        xit("accepts a datestring 000000 and returns", function() {
+            let todayAtMidnight = (new Date(Date.now())).setHours(0, 0, 0, 0);
             expect(delayTimer.timeUntilInvocation("000000")).toEqual(0);
         });
-        it("accepts a datestring 235959 and returns", function() {
+        xit("accepts a datestring 235959 and returns", function() {
             expect(delayTimer.timeUntilInvocation("235959")).toEqual(0);
         });
-        it("accepts a datestring 073000 and returns", function() {
+        xit("accepts a datestring 073000 and returns", function() {
             expect(delayTimer.timeUntilInvocation("073000")).toEqual(0);
+        });
+        it("accepts a datestring 140000 and returns", function() {
+            expect(delayTimer.timeUntilInvocation("140000")).toEqual(0);
+        });
+        it("accepts a datestring 100000 and returns", function() {
+            expect(delayTimer.timeUntilInvocation("100000")).toEqual(0);
         });
     });
     describe("datAtZero helper function", function() {

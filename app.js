@@ -33,8 +33,9 @@ async function tweetPrediction() {
 };
 
 setTimeout(function() {
+    tweetPrediction();
     setInterval(tweetPrediction, 86400000);
-}, delayTimer.timeUntilInovocation("073000"));
+}, delayTimer.timeUntilInovocation("043000"));
 
 
 //WRITE A TEST LATER DONT BE LAZY - FOR MARK
