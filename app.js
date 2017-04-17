@@ -15,8 +15,9 @@ const PredictionMaker = require("./lib/predictionMaker");
 const predictionMaker = new PredictionMaker();
 //////////*******Prediction Formatter*********//////////////////////
 const predictionFormatter = require("./lib/predictionFormatter");
-///////////////*****************//////////////////////
-
+///////////////*****delayTimer************//////////////////////
+const DelayTimer = require("./lib/delayTimer");
+const delayTimer = new DelayTimer();
 //get a prediction
 async function tweetPrediction() {
     let predictionObj = await predictionMaker.getPrediction("Apple");
@@ -33,7 +34,7 @@ async function tweetPrediction() {
 
 setTimeout(function() {
     setInterval(tweetPrediction, 86400000);
-}, 43200000);
+}, delayTimer.timeUntilInovocation("073000"));
 
 
 //WRITE A TEST LATER DONT BE LAZY - FOR MARK
