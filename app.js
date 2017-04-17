@@ -30,7 +30,7 @@ async function tweetPrediction() {
             console.log(`Response from twitter API ${response.data}`);
         }
     });
-}
+};
 
 setTimeout(function() {
     setInterval(tweetPrediction, 86400000);
