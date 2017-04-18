@@ -1,5 +1,5 @@
 const express = require("express");
-
+const app = express();
 //const fetch = require("isomorphic-fetch");
 
 const TwitterWrapper = require("./lib/twitter_wrapper");
@@ -18,6 +18,21 @@ const predictionFormatter = require("./lib/predictionFormatter");
 ///////////////*****delayTimer************//////////////////////
 const DelayTimer = require("./lib/delayTimer");
 const delayTimer = new DelayTimer();
+
+
+
+/////////////////Mongo DB//////////////////////////
+var mongoose = require('mongoose');
+app.use((req, res, next) => {
+    if (mongoose.connection.readyState) {
+        next();
+    }
+    else {
+        require('./mongo')(req).then(() => next());
+    }
+});
+
+
 //get a prediction
 async function tweetPrediction() {
     let predictionObj = await predictionMaker.getPrediction("Apple");
@@ -31,11 +46,11 @@ async function tweetPrediction() {
         }
     });
 };
-
-setTimeout(function() {
-    tweetPrediction();
-    setInterval(tweetPrediction, 86400000);
-}, delayTimer.timeUntilInovocation("043000"));
+tweetPrediction();
+// setTimeout(function() {
+//     tweetPrediction();
+//     setInterval(tweetPrediction, 86400000);
+// }, delayTimer.timeUntilInovocation("043000"));
 
 
 //WRITE A TEST LATER DONT BE LAZY - FOR MARK
