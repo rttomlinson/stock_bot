@@ -23,11 +23,11 @@
     "fetch": "^1.1.0",
     "jasmine": "^2.5.3",
     "jasmine-node": "^1.14.5",
+    "mongoose": "^4.9.5",
     "request": "^2.81.0",
     "twit": "^2.2.5"
   },
   "engines": {
     "node": "7.8.0"
   }
-
 }

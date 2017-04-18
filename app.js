@@ -21,16 +21,16 @@ const delayTimer = new DelayTimer();
 
 
 
-/////////////////Mongo DB//////////////////////////
-var mongoose = require('mongoose');
-app.use((req, res, next) => {
-    if (mongoose.connection.readyState) {
-        next();
-    }
-    else {
-        require('./mongo')(req).then(() => next());
-    }
-});
+// /////////////////Mongo DB//////////////////////////
+// var mongoose = require('mongoose');
+// app.use((req, res, next) => {
+//     if (mongoose.connection.readyState) {
+//         next();
+//     }
+//     else {
+//         require('./mongo')(req).then(() => next());
+//     }
+// });
 
 
 //get a prediction
