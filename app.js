@@ -33,6 +33,16 @@ const delayTimer = new DelayTimer();
 // });
 
 
+let predictionObj = await predictionMaker.getPrediction("Apple");
+////////////////////////////
+//save prediction in the database
+////////////////////////////
+
+
+
+
+
+
 //get a prediction
 async function tweetPrediction() {
     let predictionObj = await predictionMaker.getPrediction("Apple");

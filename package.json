@@ -5,7 +5,14 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "test": "./node_modules/jasmine-node/bin/jasmine-node ./spec --autotest --color --watch ."
+    "test": "./node_modules/jasmine-node/bin/jasmine-node ./spec --autotest --color --watch .",
+    "sql": "./node_modules/sequelize-cli/bin/sequelize",
+    "sql:migrate:undo": "npm run sql db:migrate:undo:all",
+    "sql:migrate": "npm run sql db:migrate",
+    "sql:seed:undo": "npm run sql db:seed:undo:all",
+    "sql:seed": "npm run sql db:seed:all",
+    "sql:s": "npm run sql:migrate:undo && npm run sql:migrate && npm run sql:seed:undo && npm run sql:seed",
+    "mg:seed": "node seeds/mongoose"
   },
   "repository": {
     "type": "git",
@@ -24,7 +31,11 @@
     "jasmine": "^2.5.3",
     "jasmine-node": "^1.14.5",
     "mongoose": "^4.9.5",
+    "pg": "^6.1.5",
+    "pg-hstore": "^2.3.2",
     "request": "^2.81.0",
+    "sequelize": "^3.30.4",
+    "sequelize-cli": "^2.7.0",
     "twit": "^2.2.5"
   },
   "engines": {
