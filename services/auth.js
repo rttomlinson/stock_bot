@@ -1,28 +1,24 @@
 //try to auth by bearer
 //try to auth by username as password
-module.exports = (app, options) => {
+const url = require("url");
 
+module.exports = (User, passport, helpers, app) => {
 
-    //options for auth pathway
     let options = {
-            findUserByEmail: (email) => {
-                return User.findOne({
-                    email: email
-                });
-            },
-            findUserByToken: (token) => {
-                return User.findOne({
-                    token: token
-                });
-            },
-            validateUserPassword: (user, password) => {
-                return user.validatePassword(password);
-            }
+        findUserByEmail: (email) => {
+            return User.findOne({
+                email: email
+            });
+        },
+        findUserByToken: (token) => {
+            return User.findOne({
+                token: token
+            });
+        },
+        validateUserPassword: (user, password) => {
+            return user.validatePassword(password);
         }
-        // Register options
-    for (let key in options) {
-        _options[key] = options[key];
-    }
+    };
 
 
     const _options = {
@@ -38,17 +34,44 @@ module.exports = (app, options) => {
         ]
     };
 
+    // Register options
+    for (let key in options) {
+        _options[key] = options[key];
+    }
+
+
+
+    //start passport service and session
     app.use(passport.intialize());
     app.use(passport.session());
-
-
-    //first check if they have already logged in
-    app.use(passport.authenticate('local'));
-
-
+    //if user is already logged in then req.user should be set
+    //-------------------
+    //Set res.locals.currentUser for access in templates
+    //-------------------
+    app.use((req, res, next) => {
+        if (req.user) res.locals.currentUser = req.user;
+    });
 
     //if trying to access api path, check for token
-    app.use('/api', passport.authenticate('bearer'));
+    app.use('/api', function(req, res, next) {
+        let token = req.query.token || req.body.token;
+        if (!token) {
+            res.status(401).json({
+                error: "Unauthorized"
+            });
+            return;
+        }
+        User.findByToken(token)
+            .then((user) => {
+                if (!user) {
+                    //custom error page or flash message
+                    return next(new Error("No user by that token"));
+                }
+                req.user = user;
+                next();
+            });
+
+    });
 
 
     // ----------------------------------------
@@ -93,51 +116,19 @@ module.exports = (app, options) => {
     app.get('/sessions/new', onNew);
 
 
+
+    //Shorten helpers for use in auth and routers
+    const h = helpers.registered;
+
+    //define strategy for login with local auth
+    let newSessionStrat = passport.authenticate("local", {
+        successRedirect: h.homePath(),
+        failureRedirect: h.loginPath()
+    });
     // ----------------------------------------
     // Create
     // ----------------------------------------
-    app.post('/sessions', (req, res, next) => {
-
-        // Look for the user
-        // to log in
-        const {
-            email,
-            password
-        } = req.body;
-
-        // Use the function provided in
-        // the options
-        _options.findUserByEmail(email)
-            .then((user) => {
-                // If we have a user
-                if (user) {
-
-                    // Again using a function
-                    // from the options
-                    // If password is valid
-                    if (_options.validateUserPassword(user, password)) {
-
-                        // Sign in user
-                        const sessionId = SessionService.createSignedSessionId(user.email);
-                        req.session.sessionId = sessionId;
-                        res.redirect(_options.rootUrl);
-                    }
-                    else {
-
-                        // Bad password
-                        req.flash('error', 'Invalid password');
-                        res.redirect(_options.loginUrl);
-                    }
-                }
-                else {
-
-                    // Redirect to login
-                    req.flash('error', 'User not email not found!');
-                    res.redirect(_options.loginUrl);
-                }
-            })
-            .catch(next);
-    });
+    app.post('/sessions/new', newSessionStrat);
 
 
     // ----------------------------------------

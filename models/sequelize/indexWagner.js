@@ -18,28 +18,28 @@ module.exports = function(wagner) {
   else {
     sequelize = new Sequelize(config.database, config.username, config.password, config);
   }
+  console.log("INSIDE INDEXWAGER");
+  console.log("__dirname value with wagner call", __dirname);
 
   fs
     .readdirSync(__dirname)
     .filter(function(file) {
-      return (file.indexOf('.') !== 0) && (file !== basename) && (file.slice(-3) === '.js');
+      return (file.indexOf('.') !== 0) && (file !== (basename || "indexWagner")) && (file.slice(-3) === '.js');
     })
     .forEach(function(file) {
       var model = sequelize['import'](path.join(__dirname, file));
       db[model.name] = model;
     });
-
+  console.log("After files sync is it failing???");
   Object.keys(db).forEach(function(modelName) {
+    //add model names to wagner
+    wagner.factory(modelName, function() {
+      return db[modelName];
+    });
+    //call associate functions
     if (db[modelName].associate) {
       db[modelName].associate(db);
     }
-  });
-
-  // To ensure DRY-ness, register factories in a loop
-  _.each(db, function(value, key) {
-    wagner.factory(key, function() {
-      return value;
-    });
   });
 
   wagner.factory("db", function() {
@@ -53,4 +53,4 @@ module.exports = function(wagner) {
   });
 
 
-}
+};

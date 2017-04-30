@@ -2,14 +2,16 @@ const express = require("express");
 const app = express();
 const wagner = require("wagner-core");
 
+const helpers = require('./helpers');
+wagner.factory("helpers", function() {
+    return helpers;
+});
+let db = require("./models/sequelize");
 
-require("./models/sequelize/indexWagner")(wagner);
+//require("./models/sequelize/indexWagner")(wagner);
 //get passport
 require("/services/passport")(wagner);
-wagner.invoke(require('./services/auth'), {
-    app: app,
-    options: options
-});
+
 
 
 
@@ -82,8 +84,6 @@ app.use(express.static(`${ __dirname }/public`));
 // Template Engine
 // ----------------------------------------
 const expressHandlebars = require('express-handlebars');
-const helpers = require('./helpers');
-
 
 const hbs = expressHandlebars.create({
     helpers: helpers.registered,
@@ -98,43 +98,13 @@ app.set('view engine', 'handlebars');
 // ----------------------------------------
 // Services
 // ----------------------------------------
-// const authService = require('./services/auth');
-// const User = require('./models').User;
-
-// app.use(authService({
-//     findUserByEmail: (email) => {
-//         return User.findOne({
-//             email: email
-//         });
-//     },
-//     findUserByToken: (token) => {
-//         return User.findOne({
-//             token: token
-//         });
-//     },
-//     validateUserPassword: (user, password) => {
-//         return user.validatePassword(password);
-//     }
-// }));
-
-
+wagner.invoke(require('./services/auth'), {
+    app: app
+});
 
 
 //Shorten helpers for use in auth and routers
 const h = helpers.registered;
-// Require Passport - Needs to be moved into dependency injector
-const passport = require("./services/passport")(app);
-
-//define strategy for login with local auth
-let newSessionStrat = passport.authenticate("local", {
-    successRedirect: h.homePath(),
-    failureRedirect: h.loginPath()
-});
-
-app.post('/sessions/new', newSessionStrat);
-
-
-
 
 let forLoggedOut = function(req, res, next) {
     if (req.user) {
@@ -149,25 +119,23 @@ let forLoggedIn = function(req, res, next) {
     next();
 };
 
-
-
-app.get(h.loginPath(), forLoggedOut, function(req, res, next) {
+app.get(h.loginPath(), function(req, res, next) {
     res.render("sessions/new");
 });
 
 //Be aware that the home path is located in the users_helper file
-app.get('/', forLoggedIn, function(req, res, next) {
+app.get('/', function(req, res, next) {
     res.redirect(h.homePath());
 });
-app.get(h.homePath(), forLoggedIn, function(req, res, next) {
+app.get(h.homePath(), function(req, res, next) {
     res.render("users/show");
 });
 
-app.get(h.newUserPath(), forLoggedOut, function(req, res, next) {
+app.get(h.newUserPath(), function(req, res, next) {
     res.render('users/new');
 });
-
-app.post(h.newUserPath(), forLoggedOut, function(req, res, next) {
+const User = require("./models/sequelize").User;
+app.post(h.newUserPath(), function(req, res, next) {
     const userParams = {
         email: req.body.user.email,
         password: req.body.user.password

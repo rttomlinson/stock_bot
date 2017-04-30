@@ -1,12 +1,11 @@
 //handles user authentication
 //use passport module
 const passport = require("passport");
-const User = require("../models/sequelize").User;
 let LocalStrategy = require('passport-local').Strategy;
 
 module.exports = wagner => {
 
-  wagner.factory("passport", function() {
+  wagner.factory("passport", function(User) {
 
     //Passport-local strategy
     let localStrategy = new LocalStrategy({
