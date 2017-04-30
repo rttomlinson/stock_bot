@@ -1,6 +1,18 @@
 const express = require("express");
 const app = express();
-//const fetch = require("isomorphic-fetch");
+const wagner = require("wagner-core");
+
+const helpers = require('./helpers');
+wagner.factory("helpers", function() {
+    return helpers;
+});
+
+require("./models/sequelize/")(wagner);
+//get passport
+require("./services/passport")(wagner);
+
+
+
 
 // ----------------------------------------
 // Body Parser
@@ -71,8 +83,6 @@ app.use(express.static(`${ __dirname }/public`));
 // Template Engine
 // ----------------------------------------
 const expressHandlebars = require('express-handlebars');
-const helpers = require('./helpers');
-
 
 const hbs = expressHandlebars.create({
     helpers: helpers.registered,
@@ -87,57 +97,13 @@ app.set('view engine', 'handlebars');
 // ----------------------------------------
 // Services
 // ----------------------------------------
-// const authService = require('./services/auth');
-// const User = require('./models').User;
-
-// app.use(authService({
-//     findUserByEmail: (email) => {
-//         return User.findOne({
-//             email: email
-//         });
-//     },
-//     findUserByToken: (token) => {
-//         return User.findOne({
-//             token: token
-//         });
-//     },
-//     validateUserPassword: (user, password) => {
-//         return user.validatePassword(password);
-//     }
-// }));
-
-
+wagner.invoke(require('./services/auth'), {
+    app: app
+});
 
 
 //Shorten helpers for use in auth and routers
 const h = helpers.registered;
-// Require Passport - Needs to be moved into dependency injector
-const passport = require("./services/passport")(app);
-
-//pass passport and auth to the auth helper
-
-
-
-app.use("/api", (req, res, next) => {
-    let token = req.query.token || req.body.token;
-    if (!token) {
-        res.status(401).json({
-            error: "Unauthorized"
-        });
-        return;
-    }
-    User.findByToken(token)
-        .then((user) => {
-            if (!user) {
-                //build custom error page
-                return next(new Error("Invalid token"));
-            }
-            req.user = user;
-            return next();
-        })
-        .catch(next);
-    next();
-});
 
 let forLoggedOut = function(req, res, next) {
     if (req.user) {
@@ -152,16 +118,6 @@ let forLoggedIn = function(req, res, next) {
     next();
 };
 
-
-//-------------------
-//Set res.locals.currentUser for access in templates
-//-------------------
-app.use((req, res, next) => {
-    if (req.user) res.locals.currentUser = req.user;
-    next();
-});
-
-
 app.get(h.loginPath(), function(req, res, next) {
     res.render("sessions/new");
 });
@@ -171,7 +127,7 @@ app.get('/', function(req, res, next) {
     res.redirect(h.homePath());
 });
 app.get(h.homePath(), function(req, res, next) {
-    console.log("made it to homePath");
+
     res.render("users/show");
 });
 
@@ -180,7 +136,6 @@ app.get(h.newUserPath(), function(req, res, next) {
 });
 
 const User = require("./models/sequelize").User;
-
 app.post(h.newUserPath(), function(req, res, next) {
     const userParams = {
         email: req.body.user.email,
