@@ -1,6 +1,17 @@
 const express = require("express");
 const app = express();
-//const fetch = require("isomorphic-fetch");
+const wagner = require("wagner-core");
+
+
+require("./models/sequelize/indexWagner")(wagner);
+//get passport
+require("/services/passport")(wagner);
+wagner.invoke(require('./services/auth'), {
+    app: app,
+    options: options
+});
+
+
 
 // ----------------------------------------
 // Body Parser
@@ -153,21 +164,21 @@ app.get(h.homePath(), forLoggedIn, function(req, res, next) {
 });
 
 app.get(h.newUserPath(), forLoggedOut, function(req, res, next) {
-  res.render('users/new');
+    res.render('users/new');
 });
 
 app.post(h.newUserPath(), forLoggedOut, function(req, res, next) {
-  const userParams = {
-    email: req.body.user.email,
-    password: req.body.user.password
-  };
-  User.create(userParams)
-    .then(user => {
-      req.login(user, err => {
-        return err ? next(err) : res.redirect('/');
-      });
-    })
-    .catch(next);
+    const userParams = {
+        email: req.body.user.email,
+        password: req.body.user.password
+    };
+    User.create(userParams)
+        .then(user => {
+            req.login(user, err => {
+                return err ? next(err) : res.redirect('/');
+            });
+        })
+        .catch(next);
 });
 
 

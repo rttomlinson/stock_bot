@@ -1,52 +1,34 @@
 //handles user authentication
 //use passport module
 const passport = require("passport");
-const BearerStrategy = require("passport-http-bearer").Strategy;
 const User = require("../models/sequelize").User;
+let LocalStrategy = require('passport-local').Strategy;
 
-module.exports = app => {
+module.exports = wagner => {
 
-  app.use(passport.initialize());
-  app.use(passport.session());
+  wagner.factory("passport", function() {
 
-  //Passport-local strategy
-  let LocalStrategy = require('passport-local').Strategy;
-  let localStrategy = new LocalStrategy({
+    //Passport-local strategy
+    let localStrategy = new LocalStrategy({
       usernameField: "email",
       passwordField: "password"
-  }, function(email, password, done) {
-      User.findOne({ email })
+    }, function(email, password, done) {
+      User.findOne({
+          email
+        })
         .then(user => {
           if (!user || !user.validatePassword(password)) {
-            return done(null, false, { message: 'Invalid username or password' });
+            return done(null, false, {
+              message: 'Invalid username or password'
+            });
           }
           return done(null, user);
         })
         .catch(done);
-  });
-
-  //Attach strategy to passport instance
-  passport.use(localStrategy);
-
-  let bearerStrategy = new BearerStrategy(
-    function(token, done) {
-      User.findOne({
-        token
-      })
-      .then((user) => {
-        if (!user) {
-          return done(null, false);
-        }
-        return done(null, user);
-      })
-      .catch((err) => {
-        done(err);
-      });
     });
 
-
-    passport.use(bearerStrategy);
-
+    //Attach strategy to passport instance
+    passport.use(localStrategy);
 
     passport.serializeUser(function(user, done) {
       done(null, user.id);
@@ -57,9 +39,5 @@ module.exports = app => {
         done(err, user);
       });
     });
-
-    return passport;
-}
-
-
-//now use passport for authentication
+  });
+};
