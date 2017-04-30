@@ -2,7 +2,7 @@
   "development": {
     "username": "ubuntu",
     "password": "password",
-    "database": "stockbot_dev",
+    "database": "stockbot_development",
     "host": "127.0.0.1",
     "dialect": "postgres"
   },

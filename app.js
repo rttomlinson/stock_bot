@@ -2,72 +2,309 @@ const express = require("express");
 const app = express();
 //const fetch = require("isomorphic-fetch");
 
-const TwitterWrapper = require("./lib/twitter_wrapper");
-const twit = new TwitterWrapper({
-    consumer_key: process.env.TWITTER_CONSUMER_KEY,
-    consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
-    access_token: process.env.TWITTER_ACCESS_TOKEN,
-    access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET
+// ----------------------------------------
+// Body Parser
+// ----------------------------------------
+const bodyParser = require('body-parser');
+app.use(bodyParser.urlencoded({
+    extended: true
+}));
+
+//--------------------
+//Express session
+//--------------------
+const expressSession = require("express-session");
+app.use(expressSession({
+    secret: 'keyboard cat',
+    resave: false,
+    saveUninitialized: true,
+    cookie: {}
+}));
+
+// ----------------------------------------
+// Flash Messages
+// ----------------------------------------
+const flash = require('express-flash-messages');
+app.use(flash());
+
+
+// ----------------------------------------
+// Method Override
+// ----------------------------------------
+app.use((req, res, next) => {
+    let method;
+    if (req.query._method) {
+        method = req.query._method;
+        delete req.query._method;
+        for (let key in req.query) {
+            req.body[key] = decodeURIComponent(req.query[key]);
+        }
+    }
+    else if (typeof req.body === 'object' && req.body._method) {
+        method = req.body._method;
+        delete req.body._method;
+    }
+
+    if (method) {
+        method = method.toUpperCase();
+        req.method = method;
+    }
+
+    next();
+});
+// ----------------------------------------
+// Referrer
+// ----------------------------------------
+app.use((req, res, next) => {
+    req.session.backUrl = req.header('Referer') || '/';
+    next();
 });
 
-////************* Prediction Maker Module ********////
-const PredictionMaker = require("./lib/predictionMaker");
-const predictionMaker = new PredictionMaker();
-//////////*******Prediction Formatter*********//////////////////////
-const predictionFormatter = require("./lib/predictionFormatter");
-///////////////*****delayTimer************//////////////////////
-const DelayTimer = require("./lib/delayTimer");
-const delayTimer = new DelayTimer();
+
+// ----------------------------------------
+// Public
+// ----------------------------------------
+app.use(express.static(`${ __dirname }/public`));
 
 
+// ----------------------------------------
+// Template Engine
+// ----------------------------------------
+const expressHandlebars = require('express-handlebars');
+const helpers = require('./helpers');
 
-// /////////////////Mongo DB//////////////////////////
-// var mongoose = require('mongoose');
-// app.use((req, res, next) => {
-//     if (mongoose.connection.readyState) {
-//         next();
+
+const hbs = expressHandlebars.create({
+    helpers: helpers.registered,
+    partialsDir: 'views/',
+    defaultLayout: 'main'
+});
+
+
+app.engine('handlebars', hbs.engine);
+app.set('view engine', 'handlebars');
+
+// ----------------------------------------
+// Services
+// ----------------------------------------
+// const authService = require('./services/auth');
+// const User = require('./models').User;
+
+// app.use(authService({
+//     findUserByEmail: (email) => {
+//         return User.findOne({
+//             email: email
+//         });
+//     },
+//     findUserByToken: (token) => {
+//         return User.findOne({
+//             token: token
+//         });
+//     },
+//     validateUserPassword: (user, password) => {
+//         return user.validatePassword(password);
 //     }
-//     else {
-//         require('./mongo')(req).then(() => next());
-//     }
+// }));
+
+
+
+
+//Shorten helpers for use in auth and routers
+const h = helpers.registered;
+// Require Passport - Needs to be moved into dependency injector
+const passport = require("passport");
+//Passport-local strategy
+
+let LocalStrategy = require('passport-local').Strategy;
+let localStrategy = new LocalStrategy({
+    usernameField: "email",
+    passwordField: "password"
+}, function(email, password, done) {
+    //check in the db that it matches.
+    console.log("Attempting to auth but getting redirected");
+    done(null, false);
+    //done(err);
+});
+
+//Attach strategy to passport instance
+passport.use(localStrategy);
+
+
+//define strategy for login with local auth
+let newSessionStat = passport.authenticate("local", {
+    successRedirect: h.homePath(),
+    failureRedirect: h.loginPath()
+});
+
+app.post('/sessions/new', newSessionStat);
+
+
+
+
+let loggedIn = function(req, res, next) {
+    if (req.user) {
+        return res.redirect('/');
+    }
+    next();
+};
+let loggedOut = function(req, res, next) {
+    if (!res.user) {
+        return res.redirect('/login');
+    }
+    next();
+};
+
+
+
+app.get(h.loginPath(), loggedIn, function(req, res, next) {
+    res.render("sessions/new");
+});
+//Be aware that the home path is located in the users_helper file
+app.get('/', loggedOut, function(req, res, next) {
+    res.redirect(h.homePath());
+});
+app.get(h.homePath(), loggedOut, function(req, res, next) {
+    res.render("users/show");
+});
+
+
+
+
+
+// ----------------------------------------
+// Server
+// ----------------------------------------
+const port = process.env.PORT ||
+    process.argv[2] ||
+    3000;
+const host = 'localhost';
+
+
+let args;
+process.env.NODE_ENV === 'production' ?
+    args = [port] :
+    args = [port];
+
+args.push(() => {
+    console.log(`Listening: http://${ host }:${ port }\n`);
+});
+
+
+// If we're running this file directly
+// start up the server
+if (require.main === module) {
+    app.listen.apply(app, args);
+}
+
+
+// ----------------------------------------
+// Error Handling
+// ----------------------------------------
+app.use('/api', (err, req, res, next) => {
+    if (res.headersSent) {
+        return next(err);
+    }
+
+    if (err.stack) {
+        err = err.stack;
+    }
+    res.status(500).json({
+        error: err
+    });
+});
+
+
+app.use((err, req, res, next) => {
+    if (res.headersSent) {
+        return next(err);
+    }
+
+    if (err.stack) {
+        err = err.stack;
+    }
+    res.status(500).render('errors/500', {
+        error: err
+    });
+});
+
+
+
+
+module.exports = app;
+
+
+
+
+
+
+
+
+// const TwitterWrapper = require("./lib/twitter_wrapper");
+// const twit = new TwitterWrapper({
+//     consumer_key: process.env.TWITTER_CONSUMER_KEY,
+//     consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
+//     access_token: process.env.TWITTER_ACCESS_TOKEN,
+//     access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET
 // });
 
-
-let predictionObj = await predictionMaker.getPrediction("Apple");
-////////////////////////////
-//save prediction in the database
-////////////////////////////
-
-
-
-
-
-
-//get a prediction
-async function tweetPrediction() {
-    let predictionObj = await predictionMaker.getPrediction("Apple");
-    let predictionString = predictionFormatter(predictionObj);
-    twit.sendPrediction(predictionString).then(response => {
-        if (typeof response === "string") {
-            console.error(response);
-        }
-        else {
-            console.log(`Response from twitter API ${response.data}`);
-        }
-    });
-};
-tweetPrediction();
-// setTimeout(function() {
-//     tweetPrediction();
-//     setInterval(tweetPrediction, 86400000);
-// }, delayTimer.timeUntilInovocation("043000"));
+// ////************* Prediction Maker Module ********////
+// const PredictionMaker = require("./lib/predictionMaker");
+// const predictionMaker = new PredictionMaker();
+// //////////*******Prediction Formatter*********//////////////////////
+// const predictionFormatter = require("./lib/predictionFormatter");
+// ///////////////*****delayTimer************//////////////////////
+// const DelayTimer = require("./lib/delayTimer");
+// const delayTimer = new DelayTimer();
 
 
-//WRITE A TEST LATER DONT BE LAZY - FOR MARK
-//////////*******Runs multiple tweets locally*********//////////////////////
-// let i = 0;
-// while (i < 2) {
-//   console.log("tweeting");
-//   setTimeout(tweetPrediction, 20000 * i);
-//   i++;
-// }
+
+// // /////////////////Mongo DB//////////////////////////
+// // var mongoose = require('mongoose');
+// // app.use((req, res, next) => {
+// //     if (mongoose.connection.readyState) {
+// //         next();
+// //     }
+// //     else {
+// //         require('./mongo')(req).then(() => next());
+// //     }
+// // });
+
+
+// let predictionObj = await predictionMaker.getPrediction("Apple");
+// ////////////////////////////
+// //save prediction in the database
+// ////////////////////////////
+
+
+
+
+
+
+// //get a prediction
+// async function tweetPrediction() {
+//     let predictionObj = await predictionMaker.getPrediction("Apple");
+//     let predictionString = predictionFormatter(predictionObj);
+//     twit.sendPrediction(predictionString).then(response => {
+//         if (typeof response === "string") {
+//             console.error(response);
+//         }
+//         else {
+//             console.log(`Response from twitter API ${response.data}`);
+//         }
+//     });
+// };
+// tweetPrediction();
+// // setTimeout(function() {
+// //     tweetPrediction();
+// //     setInterval(tweetPrediction, 86400000);
+// // }, delayTimer.timeUntilInovocation("043000"));
+
+
+// //WRITE A TEST LATER DONT BE LAZY - FOR MARK
+// //////////*******Runs multiple tweets locally*********//////////////////////
+// // let i = 0;
+// // while (i < 2) {
+// //   console.log("tweeting");
+// //   setTimeout(tweetPrediction, 20000 * i);
+// //   i++;
+// // }
