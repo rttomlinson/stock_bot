@@ -15,9 +15,14 @@ module.exports = {
     */
     return User.create({
       email: "admin@admin.com",
-      hashedPassword: "admin"
+      hashedPassword: "admin",
+      token: ""
     });
-
+    // return queryInterface.bulkInsert("Users", [{
+    //   email: "admin@admin.com",
+    //   hashedPassword: "admin",
+    //   token: ""
+    // }], {});
 
   },
 

@@ -11,6 +11,7 @@ var db = {};
 
 
 module.exports = function(wagner) {
+
   let sequelize;
   if (config.use_env_variable) {
     sequelize = new Sequelize(process.env[config.use_env_variable]);
@@ -28,17 +29,30 @@ module.exports = function(wagner) {
       var model = sequelize['import'](path.join(__dirname, file));
       db[model.name] = model;
     });
-  console.log("After files sync is it failing???");
+
+  //check value of wagner for seeding files
+  if (wagner === 'seeds') {
+
+
+
+  };
   Object.keys(db).forEach(function(modelName) {
-    //add model names to wagner
-    wagner.factory(modelName, function() {
-      return db[modelName];
-    });
     //call associate functions
     if (db[modelName].associate) {
       db[modelName].associate(db);
     }
   });
+
+  //get keys of db models again
+  //add model names to wagner
+  let models = Object.keys(db);
+  _.each(models, function(model) {
+    wagner.factory(model, function() {
+      return db[model];
+    });
+  });
+
+
 
   wagner.factory("db", function() {
     return db;
