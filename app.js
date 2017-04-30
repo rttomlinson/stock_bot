@@ -17,7 +17,7 @@ const expressSession = require("express-session");
 app.use(expressSession({
     secret: 'keyboard cat',
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false,
     cookie: {}
 }));
 
@@ -114,16 +114,30 @@ const h = helpers.registered;
 // Require Passport - Needs to be moved into dependency injector
 const passport = require("./services/passport")(app);
 
-//define strategy for login with local auth
-let newSessionStrat = passport.authenticate("local", {
-    successRedirect: h.homePath(),
-    failureRedirect: h.loginPath()
+//pass passport and auth to the auth helper
+
+
+
+app.use("/api", (req, res, next) => {
+    let token = req.query.token || req.body.token;
+    if (!token) {
+        res.status(401).json({
+            error: "Unauthorized"
+        });
+        return;
+    }
+    User.findByToken(token)
+        .then((user) => {
+            if (!user) {
+                //build custom error page
+                return next(new Error("Invalid token"));
+            }
+            req.user = user;
+            return next();
+        })
+        .catch(next);
+    next();
 });
-
-app.post('/sessions/new', newSessionStrat);
-
-
-
 
 let forLoggedOut = function(req, res, next) {
     if (req.user) {
@@ -132,42 +146,52 @@ let forLoggedOut = function(req, res, next) {
     next();
 };
 let forLoggedIn = function(req, res, next) {
-    if (!res.user) {
+    if (!req.user) {
         return res.redirect('/login');
     }
     next();
 };
 
 
+//-------------------
+//Set res.locals.currentUser for access in templates
+//-------------------
+app.use((req, res, next) => {
+    if (req.user) res.locals.currentUser = req.user;
+});
 
-app.get(h.loginPath(), forLoggedOut, function(req, res, next) {
+
+app.get(h.loginPath(), function(req, res, next) {
     res.render("sessions/new");
 });
 
 //Be aware that the home path is located in the users_helper file
-app.get('/', forLoggedIn, function(req, res, next) {
+app.get('/', function(req, res, next) {
     res.redirect(h.homePath());
 });
-app.get(h.homePath(), forLoggedIn, function(req, res, next) {
+app.get(h.homePath(), function(req, res, next) {
+    console.log("made it to homePath");
     res.render("users/show");
 });
 
-app.get(h.newUserPath(), forLoggedOut, function(req, res, next) {
-  res.render('users/new');
+app.get(h.newUserPath(), function(req, res, next) {
+    res.render('users/new');
 });
 
-app.post(h.newUserPath(), forLoggedOut, function(req, res, next) {
-  const userParams = {
-    email: req.body.user.email,
-    password: req.body.user.password
-  };
-  User.create(userParams)
-    .then(user => {
-      req.login(user, err => {
-        return err ? next(err) : res.redirect('/');
-      });
-    })
-    .catch(next);
+const User = require("./models/sequelize").User;
+
+app.post(h.newUserPath(), function(req, res, next) {
+    const userParams = {
+        email: req.body.user.email,
+        password: req.body.user.password
+    };
+    User.create(userParams)
+        .then(user => {
+            req.login(user, err => {
+                return err ? next(err) : res.redirect('/');
+            });
+        })
+        .catch(next);
 });
 
 

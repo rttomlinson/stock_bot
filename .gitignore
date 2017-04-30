@@ -1,3 +1,4 @@
 node_modules/
 configtwit_dev.json
 configtwit.json
+.env

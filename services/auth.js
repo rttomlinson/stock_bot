@@ -14,17 +14,23 @@ const _options = {
     ]
 };
 
-app.use(passport.intialize());
-app.use(passport.session());
+
+//define strategy for login with local auth
+let newSessionStrat = passport.authenticate("local", {
+    successRedirect: h.homePath(),
+    failureRedirect: h.loginPath()
+});
+
+app.post('/sessions/new', newSessionStrat);
 
 
-//first check if they have already logged in
-app.use(passport.authenticate('local'));
 
 
 
-//if trying to access api path, check for token
-app.use('/api', passport.authenticate('bearer'));
+
+
+
+
 
 
 // ----------------------------------------
