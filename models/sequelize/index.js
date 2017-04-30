@@ -30,18 +30,21 @@ module.exports = function(wagner) {
       db[model.name] = model;
     });
 
-  //check value of wagner for seeding files
-  if (wagner === 'seeds') {
 
 
-
-  };
   Object.keys(db).forEach(function(modelName) {
     //call associate functions
     if (db[modelName].associate) {
       db[modelName].associate(db);
     }
   });
+
+  //check value of wagner for seeding files
+  if (wagner === 'seeds') {
+    db.sequelize = sequelize;
+    db.Sequelize = sequelize;
+    return db;
+  }
 
   //get keys of db models again
   //add model names to wagner

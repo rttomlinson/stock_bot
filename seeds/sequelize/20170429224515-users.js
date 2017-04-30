@@ -1,5 +1,5 @@
 'use strict';
-const models = require('../../models/sequelize');
+const models = require('../../models/sequelize')("seeds");
 const User = models.User;
 module.exports = {
   up: function(queryInterface, Sequelize) {
@@ -15,8 +15,7 @@ module.exports = {
     */
     return User.create({
       email: "admin@admin.com",
-      hashedPassword: "admin",
-      token: ""
+      hashedPassword: "admin"
     });
     // return queryInterface.bulkInsert("Users", [{
     //   email: "admin@admin.com",
