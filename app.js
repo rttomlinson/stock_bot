@@ -6,11 +6,10 @@ const helpers = require('./helpers');
 wagner.factory("helpers", function() {
     return helpers;
 });
-let db = require("./models/sequelize");
 
-//require("./models/sequelize/indexWagner")(wagner);
+require("./models/sequelize/")(wagner);
 //get passport
-require("/services/passport")(wagner);
+require("./services/passport")(wagner);
 
 
 

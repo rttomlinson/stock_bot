@@ -29,6 +29,7 @@ module.exports = (User, passport, helpers, app) => {
             '/login',
             '/logout',
             '/sessions',
+            '/sessions/new',
             '/user/new',
             '/users'
         ]
@@ -40,9 +41,8 @@ module.exports = (User, passport, helpers, app) => {
     }
 
 
-
     //start passport service and session
-    app.use(passport.intialize());
+    app.use(passport.initialize());
     app.use(passport.session());
     //if user is already logged in then req.user should be set
     //-------------------
@@ -50,6 +50,7 @@ module.exports = (User, passport, helpers, app) => {
     //-------------------
     app.use((req, res, next) => {
         if (req.user) res.locals.currentUser = req.user;
+        next();
     });
 
     //if trying to access api path, check for token

@@ -12,6 +12,7 @@ module.exports = wagner => {
       usernameField: "email",
       passwordField: "password"
     }, function(email, password, done) {
+      console.log("attempting to authenticate");
       User.findOne({
           email
         })
@@ -34,9 +35,12 @@ module.exports = wagner => {
     });
 
     passport.deserializeUser(function(id, done) {
-      User.findById(id, function(err, user) {
-        done(err, user);
-      });
+      User.findById(id)
+        .then(user => {
+          done(null, user);
+        })
+        .catch(done);
     });
+    return passport;
   });
 };
