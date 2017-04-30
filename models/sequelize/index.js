@@ -42,7 +42,7 @@ module.exports = function(wagner) {
   //check value of wagner for seeding files
   if (wagner === 'seeds') {
     db.sequelize = sequelize;
-    db.Sequelize = sequelize;
+    db.Sequelize = Sequelize;
     return db;
   }
 

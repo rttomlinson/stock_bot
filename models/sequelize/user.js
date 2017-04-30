@@ -38,7 +38,7 @@ module.exports = function(sequelize, DataTypes) {
     user.setDataValue("hashedPassword", hashedPassword);
     //create token for user
     let email = user.getDataValue("email");
-    let token = await bcrypt.hash(email + shortId.generate());
+    let token = await bcrypt.hash(email + shortId.generate(), 8);
     user.setDataValue("token", token);
     done(null, options);
   });
