@@ -3,17 +3,7 @@
 </header>
 
 
-<form action="{{ usersPath }}" method="post">
-    <div class="form-group">
-        <label for="user_fname">First Name</label>
-        <input type="text" class="form-control" name="user[fname]">
-    </div>
-
-    <div class="form-group">
-        <label for="user_lname">Last Name</label>
-        <input type="text" class="form-control" name="user[lname]">
-    </div>
-
+<form action="{{ newUserPath }}" method="post">
     <div class="form-group">
         <label for="user_email">Email</label>
         <input type="text" class="form-control" name="user[email]">

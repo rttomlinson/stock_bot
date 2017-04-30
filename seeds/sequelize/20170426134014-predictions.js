@@ -1,5 +1,5 @@
 'use strict';
-const models = require('../..models/sequelize');
+const models = require('../../models/sequelize');
 
 
 module.exports = {

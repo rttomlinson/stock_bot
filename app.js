@@ -112,42 +112,26 @@ app.set('view engine', 'handlebars');
 //Shorten helpers for use in auth and routers
 const h = helpers.registered;
 // Require Passport - Needs to be moved into dependency injector
-const passport = require("passport");
-//Passport-local strategy
-
-let LocalStrategy = require('passport-local').Strategy;
-let localStrategy = new LocalStrategy({
-    usernameField: "email",
-    passwordField: "password"
-}, function(email, password, done) {
-    //check in the db that it matches.
-    console.log("Attempting to auth but getting redirected");
-    done(null, false);
-    //done(err);
-});
-
-//Attach strategy to passport instance
-passport.use(localStrategy);
-
+const passport = require("./services/passport")(app);
 
 //define strategy for login with local auth
-let newSessionStat = passport.authenticate("local", {
+let newSessionStrat = passport.authenticate("local", {
     successRedirect: h.homePath(),
     failureRedirect: h.loginPath()
 });
 
-app.post('/sessions/new', newSessionStat);
+app.post('/sessions/new', newSessionStrat);
 
 
 
 
-let loggedIn = function(req, res, next) {
+let forLoggedOut = function(req, res, next) {
     if (req.user) {
         return res.redirect('/');
     }
     next();
 };
-let loggedOut = function(req, res, next) {
+let forLoggedIn = function(req, res, next) {
     if (!res.user) {
         return res.redirect('/login');
     }
@@ -156,16 +140,37 @@ let loggedOut = function(req, res, next) {
 
 
 
-app.get(h.loginPath(), loggedIn, function(req, res, next) {
+app.get(h.loginPath(), forLoggedOut, function(req, res, next) {
     res.render("sessions/new");
 });
+
 //Be aware that the home path is located in the users_helper file
-app.get('/', loggedOut, function(req, res, next) {
+app.get('/', forLoggedIn, function(req, res, next) {
     res.redirect(h.homePath());
 });
-app.get(h.homePath(), loggedOut, function(req, res, next) {
+app.get(h.homePath(), forLoggedIn, function(req, res, next) {
     res.render("users/show");
 });
+
+app.get(h.newUserPath(), forLoggedOut, function(req, res, next) {
+  res.render('users/new');
+});
+
+app.post(h.newUserPath(), forLoggedOut, function(req, res, next) {
+  const userParams = {
+    email: req.body.user.email,
+    password: req.body.user.password
+  };
+  User.create(userParams)
+    .then(user => {
+      req.login(user, err => {
+        return err ? next(err) : res.redirect('/');
+      });
+    })
+    .catch(next);
+});
+
+
 
 
 

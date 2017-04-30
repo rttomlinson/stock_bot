@@ -14,9 +14,6 @@ const _options = {
     ]
 };
 
-
-
-
 app.use(passport.intialize());
 app.use(passport.session());
 
@@ -28,7 +25,6 @@ app.use(passport.authenticate('local'));
 
 //if trying to access api path, check for token
 app.use('/api', passport.authenticate('bearer'));
-
 
 
 // ----------------------------------------
