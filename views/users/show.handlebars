@@ -12,16 +12,12 @@
     </thead>
     <tbody>
         <tr>
-            <td>First Name</td>
-            <td>{{ currentUser.fname }}</td>
-        </tr>
-        <tr>
-            <td>Last Name</td>
-            <td>{{ currentUser.lname }}</td>
-        </tr>
-        <tr>
             <td>Email</td>
             <td>{{ currentUser.email }}</td>
+        </tr>
+        <tr>
+            <td>Monies</td>
+            <td>{{ currentUser.Purses.0.dataValues.amount }}</td>
         </tr>
         <tr>
             <td>API Token</td>

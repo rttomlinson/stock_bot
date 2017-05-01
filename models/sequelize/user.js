@@ -1,7 +1,7 @@
 'use strict';
 const bcrypt = require("bcrypt");
 const shortId = require("shortid");
-
+const Purse = require("./purse");
 module.exports = function(sequelize, DataTypes) {
   var User = sequelize.define('User', {
     email: DataTypes.STRING,
@@ -11,6 +11,10 @@ module.exports = function(sequelize, DataTypes) {
     classMethods: {
       associate: function(models) {
         // associations can be defined here
+        User.hasMany(models.Purse, {
+          foreignKey: "user_id"
+        });
+
       },
       findByToken: function(token) {
         return User.findOne({
@@ -36,11 +40,15 @@ module.exports = function(sequelize, DataTypes) {
     let password = user.getDataValue("hashedPassword");
     let hashedPassword = await bcrypt.hash(password, 8);
     user.setDataValue("hashedPassword", hashedPassword);
+    done(null, options);
+  });
+  User.beforeCreate(async function(user, options, done) {
     //create token for user
     let email = user.getDataValue("email");
     let token = await bcrypt.hash(email + shortId.generate(), 8);
     user.setDataValue("token", token);
     done(null, options);
   });
+
   return User;
 };

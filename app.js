@@ -118,6 +118,13 @@ let forLoggedIn = function(req, res, next) {
     next();
 };
 
+
+//create new user
+const db = require("./models/sequelize")("seeds");
+const User = db.User;
+const Purse = db.Purse;
+const sequelize = db.sequelize;
+
 app.get(h.loginPath(), function(req, res, next) {
     res.render("sessions/new");
 });
@@ -126,7 +133,19 @@ app.get(h.loginPath(), function(req, res, next) {
 app.get('/', function(req, res, next) {
     res.redirect(h.homePath());
 });
-app.get(h.homePath(), function(req, res, next) {
+app.get(h.homePath(), async function(req, res, next) {
+    let user = req.user;
+    let updatedUser = await User.findById(user.id, {
+        include: [{
+            model: Purse
+        }]
+    });
+
+    ///////////////////////
+    //--Move elsewhere?
+    req.user = updatedUser;
+    res.locals.currentUser = req.user;
+    /////////////////////////////////
 
     res.render("users/show");
 });
@@ -135,19 +154,33 @@ app.get(h.newUserPath(), function(req, res, next) {
     res.render('users/new');
 });
 
-const User = require("./models/sequelize").User;
 app.post(h.newUserPath(), function(req, res, next) {
+    let user;
     const userParams = {
         email: req.body.user.email,
         password: req.body.user.password
     };
-    User.create(userParams)
-        .then(user => {
-            req.login(user, err => {
-                return err ? next(err) : res.redirect('/');
-            });
-        })
-        .catch(next);
+    //first create the user
+    sequelize.transaction((t) => {
+        return User.create(userParams, {
+                transaction: t
+            })
+            .spread(result => {
+                user = result;
+                //now create initial purse for this user
+                return Purse.create({
+                    user_id: user.id
+                }, {
+                    transaction: t
+                });
+            })
+            .then((purse) => {
+                req.login(user, err => {
+                    return err ? next(err) : res.redirect('/');
+                });
+            })
+            .catch(next);
+    });
 });
 
 
